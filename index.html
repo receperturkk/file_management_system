@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>File Explorer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <style type="text/tailwindcss">
+        :root {
+            --primary-color: #1173d4;
+        }
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+        .context-menu {
+            display: none;
+            position: absolute;
+            z-index: 10;
+        }
+        #list-view-button.active, #grid-view-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        #list-view-button.active .material-symbols-outlined, #grid-view-button.active .material-symbols-outlined {
+            color: white;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "var(--primary-color)",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "content-light": "#1a202c",
+                        "content-dark": "#e2e8f0",
+                        "subtle-light": "#a0aec0",
+                        "subtle-dark": "#718096",
+                        "border-light": "#e2e8f0",
+                        "border-dark": "#2d3748",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a202c"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="font-display bg-background-light dark:bg-background-dark text-content-light dark:text-content-dark">
+    <div class="flex h-screen flex-col">
+        <header
+            class="flex items-center justify-between border-b border-border-light dark:border-border-dark px-6 py-3">
+            <div class="flex items-center gap-3">
+                <div class="text-primary">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    </svg>
+                </div>
+                <h1 class="text-lg font-bold">File Explorer</h1>
+            </div>
+        </header>
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex flex-1 items-center gap-4">
+                        <div class="relative w-full max-w-xs">
+                            <span
+                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-subtle-light dark:text-subtle-dark">search</span>
+                            <input
+                                class="w-full rounded-md border border-border-light bg-surface-light py-2 pl-10 pr-4 text-sm text-content-light focus:border-primary focus:ring-primary dark:border-border-dark dark:bg-surface-dark dark:text-content-dark dark:focus:border-primary"
+                                placeholder="Search files..." type="search" />
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative inline-block text-left">
+                            <div>
+                                <button aria-expanded="true" aria-haspopup="true"
+                                    class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-surface-light dark:bg-surface-dark px-3 py-2 text-sm font-semibold text-content-light dark:text-content-dark shadow-sm ring-1 ring-inset ring-border-light dark:ring-border-dark hover:bg-background-light dark:hover:bg-background-dark"
+                                    id="menu-button" type="button">
+                                    <span
+                                        class="material-symbols-outlined -ml-1 h-5 w-5 text-subtle-light dark:text-subtle-dark">sort</span>
+                                    Sort
+                                    <span
+                                        class="material-symbols-outlined -mr-1 h-5 w-5 text-subtle-light dark:text-subtle-dark">arrow_drop_down</span>
+                                </button>
+                            </div>
+                            <div aria-labelledby="menu-button" aria-orientation="vertical"
+                                class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-surface-light dark:bg-surface-dark shadow-lg ring-1 ring-border-light dark:ring-border-dark focus:outline-none hidden"
+                                role="menu" tabindex="-1">
+                                <div class="py-1" role="none">
+                                    <a class="text-content-light dark:text-content-dark block px-4 py-2 text-sm hover:bg-background-light dark:hover:bg-background-dark"
+                                        href="#" id="menu-item-0" role="menuitem" tabindex="-1">Name</a>
+                                    <a class="text-content-light dark:text-content-dark block px-4 py-2 text-sm hover:bg-background-light dark:hover:bg-background-dark"
+                                        href="#" id="menu-item-1" role="menuitem" tabindex="-1">Date Modified</a>
+                                    <a class="text-content-light dark:text-content-dark block px-4 py-2 text-sm hover:bg-background-light dark:hover:bg-background-dark"
+                                        href="#" id="menu-item-2" role="menuitem" tabindex="-1">Size</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-center rounded-md bg-surface-light p-0.5 dark:bg-surface-dark ring-1 ring-inset ring-border-light dark:ring-border-dark">
+                            <button class="rounded-md p-1.5 text-content-light dark:text-content-dark"
+                                id="list-view-button">
+                                <span class="material-symbols-outlined text-lg">view_list</span>
+                            </button>
+                            <button
+                                class="rounded-md p-1.5 text-subtle-light dark:text-subtle-dark hover:bg-background-light dark:hover:bg-background-dark"
+                                id="grid-view-button">
+                                <span class="material-symbols-outlined text-lg">grid_view</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <nav aria-label="Breadcrumb" class="mb-4">
+                    <ol class="flex items-center gap-1.5 text-sm">
+                        <li>
+                            <a class="flex items-center gap-1 text-subtle-light dark:text-subtle-dark hover:text-primary dark:hover:text-primary"
+                                href="#">
+                                <span class="material-symbols-outlined text-base">home</span>
+                                Home
+                            </a>
+                        </li>
+                        <li>
+                            <span class="text-subtle-light dark:text-subtle-dark">/</span>
+                        </li>
+                        <li>
+                            <a class="text-subtle-light dark:text-subtle-dark hover:text-primary dark:hover:text-primary"
+                                href="#">Documents</a>
+                        </li>
+                        <li>
+                            <span class="text-subtle-light dark:text-subtle-dark">/</span>
+                        </li>
+                        <li>
+                            <a class="text-subtle-light dark:text-subtle-dark hover:text-primary dark:hover:text-primary"
+                                href="#">Projects</a>
+                        </li>
+                        <li>
+                            <span class="text-subtle-light dark:text-subtle-dark">/</span>
+                        </li>
+                        <li aria-current="page" class="font-medium text-content-light dark:text-content-dark">Website
+                            Redesign</li>
+                    </ol>
+                </nav>
+                <div class="overflow-hidden rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark"
+                    id="list-view">
+                    <table class="w-full text-left">
+                        <thead
+                            class="border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-subtle-light dark:text-subtle-dark"
+                                    scope="col">Name</th>
+                                <th class="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-subtle-light dark:text-subtle-dark md:table-cell"
+                                    scope="col">Date Modified</th>
+                                <th class="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-subtle-light dark:text-subtle-dark lg:table-cell"
+                                    scope="col">Size</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-light dark:divide-border-dark" id="file-list">
+                            <tr class="hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors duration-150 cursor-pointer"
+                                data-type="file">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span
+                                            class="material-symbols-outlined mr-3 text-subtle-light dark:text-subtle-dark">description</span>
+                                        <div class="text-sm font-medium">Budget Spreadsheet</div>
+                                    </div>
+                                </td>
+                                <td
+                                    class="hidden px-6 py-4 whitespace-nowrap text-sm text-subtle-light dark:text-subtle-dark md:table-cell">
+                                    2024-02-28</td>
+                                <td
+                                    class="hidden px-6 py-4 whitespace-nowrap text-sm text-subtle-light dark:text-subtle-dark lg:table-cell">
+                                    1MB</td>
+                            </tr>
+                            <tr class="hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors duration-150 cursor-pointer"
+                                data-type="file">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span
+                                            class="material-symbols-outlined mr-3 text-subtle-light dark:text-subtle-dark">description</span>
+                                        <div class="text-sm font-medium">Client Presentation</div>
+                                    </div>
+                                </td>
+                                <td
+                                    class="hidden px-6 py-4 whitespace-nowrap text-sm text-subtle-light dark:text-subtle-dark md:table-cell">
+                                    2024-03-05</td>
+                                <td
+                                    class="hidden px-6 py-4 whitespace-nowrap text-sm text-subtle-light dark:text-subtle-dark lg:table-cell">
+                                    10MB</td>
+                            </tr>
+                            <tr class="hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors duration-150 cursor-pointer"
+                                data-type="file">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span
+                                            class="material-symbols-outlined mr-3 text-subtle-light dark:text-subtle-dark">description</span>
+                                        <div class="text-sm font-medium">Marketing Plan</div>
+                                    </div>
+                                </td>
+                                <td
+                                    class="hidden px-6 py-4 whitespace-nowrap text-sm text-subtle-light dark:text-subtle-dark md:table-cell">
+                                    2024-02-20</td>
+                                <td
+                                    class="hidden px-6 py-4 whitespace-nowrap text-sm text-subtle-light dark:text-subtle-dark lg:table-cell">
+                                    8MB</td>
+                            </tr>
+                            <tr class="hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors duration-150 cursor-pointer"
+                                data-type="folder">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="material-symbols-outlined mr-3 text-primary">folder</span>
+                                        <div class="text-sm font-medium">Meeting Notes</div>
+                                    </div>
+                                </td>
+                                <td
+                                    class="hidden px-6 py-4 whitespace-nowrap text-sm text-subtle-light dark:text-subtle-dark md:table-cell">
+                                    2024-03-10</td>
+                                <td
+                                    class="hidden px-6 py-4 whitespace-nowrap text-sm text-subtle-light dark:text-subtle-dark lg:table-cell">
+                                    500KB</td>
+                            </tr>
+                            <tr class="hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors duration-150 cursor-pointer"
+                                data-type="folder">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="material-symbols-outlined mr-3 text-primary">folder</span>
+                                        <div class="text-sm font-medium">Project Proposal</div>
+                                    </div>
+                                </td>
+                                <td
+                                    class="hidden px-6 py-4 whitespace-nowrap text-sm text-subtle-light dark:text-subtle-dark md:table-cell">
+                                    2024-03-15</td>
+                                <td
+                                    class="hidden px-6 py-4 whitespace-nowrap text-sm text-subtle-light dark:text-subtle-dark lg:table-cell">
+                                    2MB</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="hidden" id="grid-view">
+                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                        <div class="flex cursor-pointer flex-col items-center gap-2 rounded-lg p-2 text-center transition-colors duration-150 hover:bg-primary/5 dark:hover:bg-primary/10"
+                            data-type="file">
+                            <span
+                                class="material-symbols-outlined text-5xl text-subtle-light dark:text-subtle-dark">description</span>
+                            <span class="text-sm font-medium text-content-light dark:text-content-dark">Budget
+                                Spreadsheet</span>
+                        </div>
+                        <div class="flex cursor-pointer flex-col items-center gap-2 rounded-lg p-2 text-center transition-colors duration-150 hover:bg-primary/5 dark:hover:bg-primary/10"
+                            data-type="file">
+                            <span
+                                class="material-symbols-outlined text-5xl text-subtle-light dark:text-subtle-dark">description</span>
+                            <span class="text-sm font-medium text-content-light dark:text-content-dark">Client
+                                Presentation</span>
+                        </div>
+                        <div class="flex cursor-pointer flex-col items-center gap-2 rounded-lg p-2 text-center transition-colors duration-150 hover:bg-primary/5 dark:hover:bg-primary/10"
+                            data-type="file">
+                            <span
+                                class="material-symbols-outlined text-5xl text-subtle-light dark:text-subtle-dark">description</span>
+                            <span class="text-sm font-medium text-content-light dark:text-content-dark">Marketing
+                                Plan</span>
+                        </div>
+                        <div class="flex cursor-pointer flex-col items-center gap-2 rounded-lg p-2 text-center transition-colors duration-150 hover:bg-primary/5 dark:hover:bg-primary/10"
+                            data-type="folder">
+                            <span class="material-symbols-outlined text-5xl text-primary">folder</span>
+                            <span class="text-sm font-medium text-content-light dark:text-content-dark">Meeting
+                                Notes</span>
+                        </div>
+                        <div class="flex cursor-pointer flex-col items-center gap-2 rounded-lg p-2 text-center transition-colors duration-150 hover:bg-primary/5 dark:hover:bg-primary/10"
+                            data-type="folder">
+                            <span class="material-symbols-outlined text-5xl text-primary">folder</span>
+                            <span class="text-sm font-medium text-content-light dark:text-content-dark">Project
+                                Proposal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="context-menu w-48 rounded-md bg-surface-light dark:bg-surface-dark shadow-lg ring-1 ring-border-light dark:ring-border-dark"
+        id="context-menu">
+        <div class="py-1" id="file-menu">
+            <a class="flex items-center gap-3 px-4 py-2 text-sm text-content-light dark:text-content-dark hover:bg-background-light dark:hover:bg-background-dark"
+                href="#">
+                <span class="material-symbols-outlined text-base">edit</span>Rename
+            </a>
+            <a class="flex items-center gap-3 px-4 py-2 text-sm text-content-light dark:text-content-dark hover:bg-background-light dark:hover:bg-background-dark"
+                href="#">
+                <span class="material-symbols-outlined text-base">delete</span>Delete
+            </a>
+            <a class="flex items-center gap-3 px-4 py-2 text-sm text-content-light dark:text-content-dark hover:bg-background-light dark:hover:bg-background-dark"
+                href="#">
+                <span class="material-symbols-outlined text-base">download</span>Download
+            </a>
+        </div>
+        <div class="py-1" id="folder-menu">
+            <a class="flex items-center gap-3 px-4 py-2 text-sm text-content-light dark:text-content-dark hover:bg-background-light dark:hover:bg-background-dark"
+                href="#">
+                <span class="material-symbols-outlined text-base">edit</span>Rename
+            </a>
+            <a class="flex items-center gap-3 px-4 py-2 text-sm text-content-light dark:text-content-dark hover:bg-background-light dark:hover:bg-background-dark"
+                href="#">
+                <span class="material-symbols-outlined text-base">delete</span>Delete
+            </a>
+        </div>
+    </div>
+    <script>
+        const listViewButton = document.getElementById('list-view-button');
+        const gridViewButton = document.getElementById('grid-view-button');
+        const listView = document.getElementById('list-view');
+        const gridView = document.getElementById('grid-view');
+        function setActiveButton(button) {
+            // Reset both buttons
+            listViewButton.classList.remove('active', 'bg-primary', 'text-white');
+            listViewButton.classList.add('text-subtle-light', 'dark:text-subtle-dark');
+            gridViewButton.classList.remove('active', 'bg-primary', 'text-white');
+            gridViewButton.classList.add('text-subtle-light', 'dark:text-subtle-dark');
+            // Set active button
+            button.classList.add('active', 'bg-primary', 'text-white');
+            button.classList.remove('text-subtle-light', 'dark:text-subtle-dark');
+        }
+        listViewButton.addEventListener('click', () => {
+            listView.classList.remove('hidden');
+            gridView.classList.add('hidden');
+            setActiveButton(listViewButton);
+        });
+        gridViewButton.addEventListener('click', () => {
+            gridView.classList.remove('hidden');
+            listView.classList.add('hidden');
+            setActiveButton(gridViewButton);
+        });
+        // Set initial state
+        setActiveButton(listViewButton);
+        const fileList = document.getElementById('file-list');
+        const contextMenu = document.getElementById('context-menu');
+        const fileMenu = document.getElementById('file-menu');
+        const folderMenu = document.getElementById('folder-menu');
+        fileList.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const targetRow = e.target.closest('tr');
+            if (!targetRow) return;
+            const itemType = targetRow.dataset.type;
+            if (itemType === 'file') {
+                fileMenu.style.display = 'block';
+                folderMenu.style.display = 'none';
+            } else if (itemType === 'folder') {
+                folderMenu.style.display = 'block';
+                fileMenu.style.display = 'none';
+            }
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${e.pageX}px`;
+            contextMenu.style.top = `${e.pageY}px`;
+        });
+        document.addEventListener('click', () => {
+            contextMenu.style.display = 'none';
+        });
+        document.querySelectorAll('[data-type]').forEach(item => {
+            item.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const itemType = e.currentTarget.dataset.type;
+                if (itemType === 'file') {
+                    fileMenu.style.display = 'block';
+                    folderMenu.style.display = 'none';
+                } else if (itemType === 'folder') {
+                    folderMenu.style.display = 'block';
+                    fileMenu.style.display = 'none';
+                }
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${e.pageX}px`;
+                contextMenu.style.top = `${e.pageY}px`;
+            });
+        });
+    </script>
+</body>
+
+</html>
